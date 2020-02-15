@@ -11,7 +11,8 @@ using namespace std;
 #define MAX_PATHS 64
 #define MAX_PATH_LEN 96
 #define WHITESPACE " .,\t\n"
-
+// Assume no input line will be longer than 1024 bytes
+#define MAX_INPUT 1024
 #ifndef NULL
 #define NULL ...
 #endif
@@ -19,7 +20,8 @@ using namespace std;
 struct command_t
 {
   char *name;
-  int argc=0;;
+  int argc = 0;
+  ;
   char *argv[MAX_ARGS];
 };
 int printPrompt()
@@ -37,8 +39,53 @@ int StartMessage()
   return write(1, startString, strlen(startString));
 }
 
-void readCommand(char *buffer)
+int readAndParseCommand(char *commandLine, command_t &command)
 {
+  char *cursor;
+  char *parser; //=new char[LINE_LEN];
+  char last_char;
+  int rv;
+  int count;
+  int oldCount = 0;
+
+  // read the input and parse the command
+  for (rv = 1, count = 0,
+      cursor = commandLine, last_char = 1, parser = commandLine;
+       rv && (count < (MAX_INPUT - 1)) && (last_char != '\n');
+       cursor++, count++)
+  {
+
+    rv = read(0, cursor, 1);
+    last_char = *cursor;
+    if ((last_char == ' ' || last_char == '\n') && *parser != '\n')
+    {
+      if (*parser == ' ')
+      {
+        parser++;
+        count--;
+      }
+      else
+      {
+        if (command.argc == 0)
+        {
+          command.name = new char[count + 1];
+          strncpy(command.name, parser, count);
+          //command.name[count]='/0';
+        }
+        else
+        {
+          command.argv[command.argc] = new char[count - oldCount];
+          strncpy(command.argv[command.argc], parser, count - oldCount - 1);
+          //command.argv[command.argc++][count-oldCount-1]='/0';
+        }
+        command.argc++;
+        parser = cursor + 1;
+        oldCount = count; //except space
+      }
+    }
+  }
+  *cursor = '\0';
+  return rv;
   /* This code uses any set of I/O functions, such as those in the
  * stdio library to read the entire command line into the buffer. This
  * implementation is greatly simplified but it does the job.
@@ -46,18 +93,20 @@ void readCommand(char *buffer)
   //gets(buffer);
 }
 
-void parseCommand(char *commandLine, command_t&command)
+void parseCommand(char *commandLine, command_t &command)
 {
-  if(command.name)
-    cout<<command.name<<endl;
-  for (int i = 1; i <command.argc; i++)
+}
+void testCommand(command_t &command)
+{
+  if (command.name)
+    cout << command.name << endl;
+  for (int i = 1; i < command.argc; i++)
   {
-    cout<<command.argv[i]<<endl;
+    cout << command.argv[i] << endl;
   }
-  
 }
 //set path=(.:/bin:/usr/bin)
-int parsePath(char *dirs[])
+int parsePath(char*dirs[])
 {
   /* This function reads the PATH variable for this
  * environment, then builds an array, dirs[], of the
@@ -71,14 +120,52 @@ int parsePath(char *dirs[])
   pathEnvVar = (char *)getenv("PATH");
   thePath = (char *)malloc(strlen(pathEnvVar) + 1);
   strcpy(thePath, pathEnvVar);
+  //cout<<thePath<<endl;
+  
+  //supposed that it contains null terminator
 
   /* Loop to parse thePath. Look for a ":"
  * delimiter between each path name.
  */
-  // for(int )
+  int index = 0;
+  char *cursor;
+  char *parser; //=new char[LINE_LEN];
+  char last_char;
+  int count;
+  int oldCount = -1;
 
-  //   return 0;//for now
-  // }
+  // read the input and parse the command
+  for (count = 0,
+      cursor = thePath, last_char = 1, parser = thePath;
+       count < strlen(thePath)+1;
+       cursor++, count++)
+  {
+    last_char = *cursor;
+    if ((last_char == ':' || last_char == '\0') && *parser != '\0')
+    {
+      if (*parser == ':')
+      {
+        parser++;
+        count--;
+      }
+      else
+      {
+        dirs[index] = new char[count - oldCount];
+        strncpy(dirs[index], parser, count - oldCount - 1);
+        //dirs[index][count-oldCount-1]='/0';
+        index++;
+        parser = cursor + 1;
+        oldCount = count; //except space
+      }
+    }
+  }
+  *cursor = '\0';
+
+  cout<<"done..."<<index<<endl;
+  for (int i = 0; i<index+1; i++)
+    {
+      cout << dirs[i] << endl;
+    }
   return 0;
 }
 
@@ -100,6 +187,8 @@ char *lookupPath(char **argv, char **dir)
   // Use access() to see if the file is in a dir.
   for (int i = 0; i < MAX_PATHS; i++)
   {
+    if (access(dir[i], 1)) ///???
+      return dir[i];
   }
   // File name not found in any path variable
   fprintf(stderr, "%s: command not found\n", argv[0]);
