@@ -57,10 +57,11 @@ void printPrompt()
   getcwd(cwd, sizeof(cwd));
   //printf("%s",cwd);
   strcat(cwd,"# ");
+  write(1,"root@dash: ",11);
   write(1, cwd, strlen(cwd));
-  //cout << BOLD(FRED("dash@"));
-  //cout << cwd;
-  //cout << BOLD(FBLU("# "));
+  // cout << BOLD(FRED("root@dash: "));
+  // cout << cwd;
+  // cout << BOLD(FBLU("# "));
 }
 void Clear()
 {
@@ -68,6 +69,7 @@ void Clear()
 }
 void StartMessage()
 {
+  //
   cout << BOLD(FGRN("Kali Linux GNU/Linux Rolling [Version 10.0.17763.1039](c) 2018 Kali Linux.All rights reserved."))
        << endl; //for now noo returns
 }

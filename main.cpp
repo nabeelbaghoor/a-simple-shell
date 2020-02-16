@@ -12,10 +12,9 @@
 using namespace std;
 int main(int argc, char **argv, char **envp)
 {
-  //parsePath(pathv);
   int finished = 0;
   char *dirs[MAX_PATHS];
-  Clear();
+  //Clear();
   StartMessage();
   while (!finished)
   {
@@ -30,34 +29,16 @@ int main(int argc, char **argv, char **envp)
       break;
     }
 
-    //print it for now
     int total_paths = parsePath(dirs);
-    const char *filename = lookupPath(command.name, dirs, total_paths);
-    //cout << "result2:" << filename << endl;
+    char *filename = lookupPath(command.name, dirs, total_paths);
 
-    // char *arr[] = {"ls", "-l", "-R", "-a", NULL};
-    // execv("/bin/ls", arr);
-    //char *arguments[] = {"ls", "-l", "-R", "-a", NULL};
     int pid = fork();
-    // execv(filename,command.argv);
-    if (pid== 0)
-    {
-      //char *arr[] = {"ls", "-l", "-R", "-a", NULL};
-      execv("filename", command.argv);
-    }
-    // for (int i = 0; i < total_paths+1; i++)
-    // {
-    //   cout << dirs[i] << endl;
-    // }
-
-    //testCommand(command);
-
-    //parse the command
-    //parseCommand(commandLine, command);
-
-    // Execute the command, handling built-in commands separately
-    // Just echo the command line for now
-    //write(1, commandLine, strnlen(commandLine, MAX_INPUT));
+    if(pid<0)
+      cout<<"fork failed\n";
+    if (pid == 0)
+      execv(filename, command.argv);
+    else
+      wait(&pid);
   }
 
   return 0;
