@@ -5,7 +5,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
-/* COMP 530: Tar Heel SHell */
 #include <string.h>
 #include "minishell.h"
 
@@ -14,7 +13,8 @@ int main(int argc, char **argv, char **envp)
 {
   int finished = 0;
   char *dirs[MAX_PATHS];
-  //Clear();
+  int total_paths = parsePath(dirs);
+  Clear();
   StartMessage();
   while (!finished)
   {
@@ -28,15 +28,18 @@ int main(int argc, char **argv, char **envp)
       finished = 1;
       break;
     }
-
-    int total_paths = parsePath(dirs);
-    char *filename = lookupPath(command.name, dirs, total_paths);
-
+    /* Get the full pathname for the file */
+    command.name = lookupPath(command.argv[0], dirs, total_paths);
+    if (command.name == NULL)
+    {
+      write(1, "unexpected error has occured!", 28);
+      break;
+    }
     int pid = fork();
-    if(pid<0)
-      cout<<"fork failed\n";
+    if (pid < 0)
+      cout << "fork failed\n";
     if (pid == 0)
-      execv(filename, command.argv);
+      execv(command.name, command.argv);
     else
       wait(&pid);
   }

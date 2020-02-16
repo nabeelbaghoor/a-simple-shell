@@ -56,8 +56,8 @@ void printPrompt()
   char cwd[MAX_INPUT];
   getcwd(cwd, sizeof(cwd));
   //printf("%s",cwd);
-  strcat(cwd,"# ");
-  write(1,"root@dash: ",11);
+  strcat(cwd, "# ");
+  write(1, "root@dash: ", 11);
   write(1, cwd, strlen(cwd));
   // cout << BOLD(FRED("root@dash: "));
   // cout << cwd;
@@ -71,17 +71,17 @@ void StartMessage()
 {
   //
   cout << BOLD(FGRN("Kali Linux GNU/Linux Rolling [Version 10.0.17763.1039](c) 2018 Kali Linux.All rights reserved."))
-       << endl; //for now noo returns
+       << endl;
 }
 
 int readAndParseCommand(char *commandLine, command_t &command)
 {
   char *cursor;
-  char *parser; //=new char[LINE_LEN];
+  char *parser;
   char last_char;
   int rv;
   int count;
-  int oldCount = 0;
+  int oldCount = -1;
 
   // read the input and parse the command
   for (rv = 1, count = 0,
@@ -101,23 +101,12 @@ int readAndParseCommand(char *commandLine, command_t &command)
       }
       else
       {
-        if (command.argc == 0)
-        {
-          command.name = new char[count + 1];
-          strncpy(command.name, parser, count);
-          //command.name[count]='/0';
-          command.argv[command.argc] = new char[count + 1];
-          strncpy(command.argv[command.argc], parser, count);
-        }
-        else
-        {
-          command.argv[command.argc] = new char[count - oldCount];
-          strncpy(command.argv[command.argc], parser, count - oldCount - 1);
-          //command.argv[command.argc++][count-oldCount-1]='/0';
-        }
+        command.argv[command.argc] = new char[count - oldCount];
+        strncpy(command.argv[command.argc], parser, count - oldCount - 1);
+
         command.argc++;
         parser = cursor + 1;
-        oldCount = count; //except space
+        oldCount = count;
       }
     }
   }
@@ -136,12 +125,8 @@ void parseCommand(char *commandLine, command_t &command)
 }
 void testCommand(command_t &command)
 {
-  if (command.name)
-    cout << command.name << endl;
   for (int i = 0; i < command.argc; i++)
-  {
     cout << command.argv[i] << endl;
-  }
 }
 //set path=(.:/bin:/usr/bin)
 int parsePath(char *dirs[])
@@ -158,10 +143,6 @@ int parsePath(char *dirs[])
   pathEnvVar = (char *)getenv("PATH");
   thePath = (char *)malloc(strlen(pathEnvVar) + 1);
   strcpy(thePath, pathEnvVar);
-  //cout<<thePath<<endl;
-
-  //supposed that it contains null terminator
-
   /* Loop to parse thePath. Look for a ":"
  * delimiter between each path name.
  */
@@ -190,10 +171,9 @@ int parsePath(char *dirs[])
       {
         dirs[index] = new char[count - oldCount];
         strncpy(dirs[index], parser, count - oldCount - 1);
-        //dirs[index][count-oldCount-1]='/0';
         index++;
         parser = cursor + 1;
-        oldCount = count; //except space
+        oldCount = count;
       }
     }
   }
@@ -211,10 +191,8 @@ char *lookupPath(char *filename, char *dir[], int total_paths) //changed
   if (filename && dir) //check if null
   {
     //char *result;
-
     char *pName = new char[MAX_PATH_LEN];
     // Check to see if file name is already an absolute path
-    //if (*argv[0] == '/')
     if (*filename == '/')
     {
       if (!access(filename, F_OK))
@@ -233,11 +211,7 @@ char *lookupPath(char *filename, char *dir[], int total_paths) //changed
         //cout << pName << endl;
         // cout<<"!access(pName, F_OK)"<<access(pName, F_OK)<<endl;
         if (!access(pName, F_OK))
-        {
-          //cout << "found: " << pName << endl;
-          //strcpy(filename,pName);
           return pName;
-        }
       }
       // File name not found in any path variable
     }
