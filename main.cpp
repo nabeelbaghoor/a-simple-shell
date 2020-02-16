@@ -14,21 +14,15 @@ int main(int argc, char **argv, char **envp)
 {
   //parsePath(pathv);
   int finished = 0;
-  if (!StartMessage())
-    finished = 1;
-
-  cout << endl
-       << endl;
+  char *dirs[MAX_PATHS];
+  Clear();
+  StartMessage();
   while (!finished)
   {
     command_t command;
     char commandLine[MAX_INPUT];
     // Print the prompt
-    if (!printPrompt())
-    {
-      finished = 1;
-      break;
-    }
+    printPrompt();
     //read and parse the command
     if (!readAndParseCommand(commandLine, command))
     {
@@ -37,9 +31,26 @@ int main(int argc, char **argv, char **envp)
     }
 
     //print it for now
-    testCommand(command);
-    char *dirs[MAX_PATHS];
-    parsePath(dirs);
+    int total_paths = parsePath(dirs);
+    const char *filename = lookupPath(command.name, dirs, total_paths);
+    //cout << "result2:" << filename << endl;
+
+    // char *arr[] = {"ls", "-l", "-R", "-a", NULL};
+    // execv("/bin/ls", arr);
+    //char *arguments[] = {"ls", "-l", "-R", "-a", NULL};
+    int pid = fork();
+    // execv(filename,command.argv);
+    if (pid== 0)
+    {
+      //char *arr[] = {"ls", "-l", "-R", "-a", NULL};
+      execv("filename", command.argv);
+    }
+    // for (int i = 0; i < total_paths+1; i++)
+    // {
+    //   cout << dirs[i] << endl;
+    // }
+
+    //testCommand(command);
 
     //parse the command
     //parseCommand(commandLine, command);
